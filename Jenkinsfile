@@ -1,16 +1,24 @@
 pipeline {
-     agent any
-     stages {
-        stage("Build") {
+    agent any
+    environment {
+        CI = 'true'
+    }
+    stages {
+        stage('Build') {
             steps {
-                sh "sudo npm install"
-                sh "sudo npm run build"
+                sh 'npm install'
             }
         }
-        stage("Deploy") {
+        stage('Test') {
             steps {
-                sh "sudo rm -rf /var/www/jenkins-react-app"
-                sh "sudo cp -r ${WORKSPACE}/build/ /var/www/jenkins-react-app/"
+                sh './jenkins/scripts/test.sh'
+            }
+        }
+        stage('Deliver') {
+            steps {
+                sh './jenkins/scripts/deliver.sh'
+                input message: 'Finished using the web site? (Click "Proceed" to continue)'
+                sh './jenkins/scripts/kill.sh'
             }
         }
     }
